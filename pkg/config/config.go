@@ -40,7 +40,7 @@ func Load() *Config {
 			Port:     getEnvAsInt("DB_PORT", 26257),
 			User:     getEnv("DB_USER", "root"),
 			Password: getEnv("DB_PASSWORD", ""),
-			DBName:   getEnv("DB_NAME", "STOCKMARKET"),
+			DBName:   getEnv("DB_NAME", "stockmarket"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		API: APIConfig{
