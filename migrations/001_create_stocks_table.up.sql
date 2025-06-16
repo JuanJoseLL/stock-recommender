@@ -21,3 +21,6 @@ CREATE INDEX IF NOT EXISTS idx_stocks_brokerage ON stocks(brokerage);
 
 -- Create composite index for common queries
 CREATE INDEX IF NOT EXISTS idx_stocks_ticker_time ON stocks(ticker, time DESC);
+
+-- Create unique constraint to prevent duplicates
+ALTER TABLE stocks ADD CONSTRAINT stocks_ticker_time_unique UNIQUE (ticker, time);
