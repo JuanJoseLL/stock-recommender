@@ -5,8 +5,10 @@ import (
 
 	"github.com/JuanJoseLL/stock-recommender/internal/client"
 	"github.com/JuanJoseLL/stock-recommender/internal/handler"
+	"github.com/JuanJoseLL/stock-recommender/internal/repository"
 	"github.com/JuanJoseLL/stock-recommender/internal/service"
 	"github.com/JuanJoseLL/stock-recommender/pkg/config"
+	"github.com/JuanJoseLL/stock-recommender/pkg/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,14 +16,19 @@ func main() {
 	
 	cfg := config.Load()
 
+	// Initialize database connection
+	db, err := database.NewConnection(cfg)
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	defer db.Close()
+
+	// Initialize repository
+	stockRepo := repository.NewStockRepository(db)
 	
 	apiClient := client.NewHTTPClient(cfg.API.URL, cfg.API.Key)
 
-	// TODO: Initialize database repository when implemented
-	// For now, we'll use a mock repository
-	//var stockRepo interface{} = nil
-
-	stockService := service.NewStockService(nil, apiClient) 
+	stockService := service.NewStockService(stockRepo, apiClient) 
 
 	
 	stockHandler := handler.NewStockHandler(stockService)
