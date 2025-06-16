@@ -44,8 +44,8 @@ func Load() *Config {
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		API: APIConfig{
-			URL: getEnv("API_URL", ""),
-			Key: getEnv("API_KEY", ""),
+			URL: getEnv("API_URL", "https://8j5baasof2.execute-api.us-west-2.amazonaws.com"),
+			Key: getEnv("API_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHRlbXB0cyI6MSwiZW1haWwiOiJqdWFuam9sbzEyQGhvdG1haWwuY29tIiwiZXhwIjoxNzUwMTg2MTk2LCJpZCI6IjAiLCJwYXNzd29yZCI6Iicgb3IgMT0xIG9yICcnPScifQ.i3iwFvk5BA5l_AonHDYb4RhEJSZfha3nVsb4ZFvQ7u0"),
 		},
 	}
 }
