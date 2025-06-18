@@ -10,10 +10,15 @@ import (
 	"github.com/JuanJoseLL/stock-recommender/pkg/config"
 	"github.com/JuanJoseLL/stock-recommender/pkg/database"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using environment variables")
+	}
+
 	cfg := config.Load()
 
 	// Initialize database connection
@@ -25,25 +30,20 @@ func main() {
 
 	// Initialize repository
 	stockRepo := repository.NewStockRepository(db)
-	
+
 	apiClient := client.NewHTTPClient(cfg.API.URL, cfg.API.Key)
 
-	stockService := service.NewStockService(stockRepo, apiClient) 
+	stockService := service.NewStockService(stockRepo, apiClient)
 
-	
 	stockHandler := handler.NewStockHandler(stockService)
 
-	
 	router := gin.Default()
 
-	
 	stockHandler.RegisterRoutes(router)
 
-	
 	log.Printf("Starting server on port %s", cfg.Server.Port)
 	log.Printf("Database URL: %s", cfg.GetDatabaseURL())
 	if err := router.Run(":" + cfg.Server.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }
-
