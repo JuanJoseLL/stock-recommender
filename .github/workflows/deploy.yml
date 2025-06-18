@@ -1,0 +1,140 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Permite ejecutar manualmente
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: stock-recommender-backend
+  S3_BUCKET: stock-recommender-frontend-bucket
+  CLOUDFRONT_DISTRIBUTION_ID: EGYUKSBCW6EVP
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend to App Runner
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and push it to ECR
+          cd backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Trigger App Runner deployment
+        run: |
+          # App Runner automatically deploys when a new image is pushed to ECR with 'latest' tag
+          echo "App Runner will automatically deploy the new image"
+          
+          # Wait a bit and check deployment status
+          sleep 30
+          aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`stock-recommender-backend-service`]' --output table
+
+  deploy-frontend:
+    name: Deploy Frontend to S3/CloudFront
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./frontend/dist s3://$S3_BUCKET --delete --cache-control max-age=31536000,public
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
+            --paths "/*"
+
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get service URLs
+        id: get-urls
+        run: |
+          # Get App Runner service URL
+          BACKEND_URL=$(aws apprunner describe-service \
+            --service-arn $(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`stock-recommender-backend-service`].ServiceArn' --output text) \
+            --query 'Service.ServiceUrl' --output text)
+          
+          # CloudFront URL is static
+          FRONTEND_URL="https://d39w1jcvbowdp6.cloudfront.net"
+          
+          echo "backend-url=https://$BACKEND_URL" >> $GITHUB_OUTPUT
+          echo "frontend-url=$FRONTEND_URL" >> $GITHUB_OUTPUT
+
+      - name: Test backend health
+        run: |
+          echo "Testing backend health endpoint..."
+          curl -f ${{ steps.get-urls.outputs.backend-url }}/health || exit 1
+          echo "✅ Backend is healthy"
+
+      - name: Test frontend
+        run: |
+          echo "Testing frontend..."
+          curl -f -s -o /dev/null ${{ steps.get-urls.outputs.frontend-url }} || exit 1
+          echo "✅ Frontend is accessible"
+
+      - name: Deployment Summary
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "Frontend: ${{ steps.get-urls.outputs.frontend-url }}"
+          echo "Backend: ${{ steps.get-urls.outputs.backend-url }}"

@@ -44,13 +44,17 @@ func Load() *Config {
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		API: APIConfig{
-			URL: getEnv("API_URL", "https://8j5baasof2.execute-api.us-west-2.amazonaws.com"),
-			Key: getEnv("API_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHRlbXB0cyI6MSwiZW1haWwiOiJqdWFuam9sbzEyQGhvdG1haWwuY29tIiwiZXhwIjoxNzUwMTg2MTk2LCJpZCI6IjAiLCJwYXNzd29yZCI6Iicgb3IgMT0xIG9yICcnPScifQ.i3iwFvk5BA5l_AonHDYb4RhEJSZfha3nVsb4ZFvQ7u0"),
+			URL: getEnv("API_URL", "https://localhost:8080"),
+			Key: getEnv("API_KEY", ""),
 		},
 	}
 }
 
 func (c *Config) GetDatabaseURL() string {
+	if dbURL := getEnv("DATABASE_URL", ""); dbURL != "" {
+		fmt.Println("Using DATABASE_URL from environment")
+		return dbURL
+	}
 	if c.Database.Password == "" {
 		return fmt.Sprintf("postgresql://%s@%s:%d/%s?sslmode=%s",
 			c.Database.User,
