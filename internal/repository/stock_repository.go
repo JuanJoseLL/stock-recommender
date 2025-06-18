@@ -137,7 +137,11 @@ func (r *stockRepository) BulkCreate(ctx context.Context, stocks []domain.Stock)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			log.Printf("failed to rollback transaction: %v", err)
+		}
+	}()
 
 	// Use UPSERT to handle duplicates - insert or update on conflict
 	stmt, err := tx.PrepareContext(ctx, `
