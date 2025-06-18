@@ -1,10 +1,10 @@
-name: Go Tests
+name: CI/CD Pipeline
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  backend-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,31 +19,37 @@ jobs:
           go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: |
-            **/go.sum
-            **/go.mod
+            backend/go.sum
+            backend/go.mod
       
       - name: Download dependencies
         run: go mod download
+        working-directory: ./backend
       
       - name: Verify dependencies
         run: go mod verify
+        working-directory: ./backend
       
       - name: Run go vet
         run: go vet ./...
+        working-directory: ./backend
       
       - name: Install staticcheck
         run: go install honnef.co/go/tools/cmd/staticcheck@latest
       
       - name: Run staticcheck
         run: staticcheck ./...
+        working-directory: ./backend
       
       - name: Run tests
         run: go test -race -v ./...
+        working-directory: ./backend
       
       - name: Build
         run: go build -v ./...
+        working-directory: ./backend
 
-  lint:
+  backend-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,4 +63,5 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
+          working-directory: ./backend
           args: --timeout=5m
