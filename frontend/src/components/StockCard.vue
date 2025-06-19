@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Stock } from '@/stores/stocks'
+import type { Stock } from '@/types/api'
 
 interface Props {
   stock: Stock
