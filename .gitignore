@@ -23,12 +23,10 @@ pnpm-debug.log*
 *.pem
 
 # Ansible
-ansible/inventory.yml
-ansible/inventory.yaml
+
 ansible/hosts
 ansible/group_vars/*/vault.yml
 ansible/host_vars/*/vault.yml
-ansible/templates/env.j2
 ansible/templates/*.env
 ansible/.vault_pass
 ansible/*.retry

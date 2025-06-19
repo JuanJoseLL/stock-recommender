@@ -1,0 +1,19 @@
+all:
+  hosts:
+    stock-recommender-server:
+      ansible_host: "3.210.158.123"
+      ansible_user: "ubuntu"
+      ansible_ssh_private_key_file: "../terraform/stock-recommender-key.pem"
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      ansible_port: 22
+      
+  vars:
+    # EC2 Configuration
+    ec2_public_ip: "3.210.158.123"
+    admin_username: "ubuntu"
+    
+    # Application Configuration
+    app_name: "stock-recommender"
+    app_directory: "/opt/stock-recommender"
+
+    environment: "production" 

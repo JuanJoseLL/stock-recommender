@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [main, hotfix/url-front]
+    branches: [main, refactor/change-arch]
   workflow_dispatch: # Permite ejecutar manualmente
 
 env:
