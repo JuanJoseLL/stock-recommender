@@ -25,10 +25,11 @@ export const useStocksStore = defineStore('stocks', () => {
   const error = ref<string | null>(null)
   
   const filters = ref<AppFilters>({
-    sector: [],
-    recommendation_type: [],
-    action: [],
-    brokerage: [],
+    search: '',
+    sector: '',
+    recommendation_type: '',
+    action: '',
+    brokerage: '',
     enriched_only: false
   })
   
@@ -57,21 +58,29 @@ export const useStocksStore = defineStore('stocks', () => {
   const filteredStocks = computed(() => {
     let filtered = stocks.value
     
-    if (filters.value.sector.length > 0) {
-      filtered = filtered.filter(stock => 
-        stock.sector && filters.value.sector.includes(stock.sector)
+    if (filters.value.search) {
+      const searchTerm = filters.value.search.toLowerCase()
+      filtered = filtered.filter(stock =>
+        stock.ticker.toLowerCase().includes(searchTerm) ||
+        stock.company.toLowerCase().includes(searchTerm)
       )
     }
     
-    if (filters.value.action.length > 0) {
+    if (filters.value.sector) {
       filtered = filtered.filter(stock => 
-        filters.value.action.includes(stock.action)
+        stock.sector && stock.sector === filters.value.sector
       )
     }
     
-    if (filters.value.brokerage.length > 0) {
+    if (filters.value.action) {
       filtered = filtered.filter(stock => 
-        filters.value.brokerage.includes(stock.brokerage)
+        stock.action === filters.value.action
+      )
+    }
+    
+    if (filters.value.brokerage) {
+      filtered = filtered.filter(stock => 
+        stock.brokerage === filters.value.brokerage
       )
     }
     
@@ -88,7 +97,11 @@ export const useStocksStore = defineStore('stocks', () => {
     return filteredStocks.value.slice(start, end)
   })
 
-  const fetchStocks = async () => {
+  const fetchStocks = async (force = false) => {
+    if (stocks.value.length > 0 && !force) {
+      return
+    }
+
     loading.value.stocks = true
     error.value = null
     
@@ -124,7 +137,7 @@ export const useStocksStore = defineStore('stocks', () => {
     try {
       const response = await apiService.enrichStocks(limit)
       enrichmentStats.value = response.stats
-      await fetchStocks()
+      await fetchStocks(true)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to enrich stocks'
     } finally {
@@ -155,6 +168,18 @@ export const useStocksStore = defineStore('stocks', () => {
     pagination.value = { ...pagination.value, ...newPagination }
   }
 
+  const clearFilters = () => {
+    filters.value = {
+      search: '',
+      sector: '',
+      recommendation_type: '',
+      action: '',
+      brokerage: '',
+      enriched_only: false
+    }
+    pagination.value.page = 1
+  }
+
   const clearError = () => {
     error.value = null
   }
@@ -178,6 +203,7 @@ export const useStocksStore = defineStore('stocks', () => {
     fetchRecommendations,
     updateFilters,
     updatePagination,
+    clearFilters,
     clearError
   }
 })

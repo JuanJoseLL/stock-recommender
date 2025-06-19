@@ -84,10 +84,11 @@ export interface DashboardData {
 }
 
 export interface AppFilters {
-  sector: string[]
-  recommendation_type: string[]
-  action: string[]
-  brokerage: string[]
+  search: string
+  sector: string
+  recommendation_type: string
+  action: string
+  brokerage: string
   enriched_only: boolean
 }
 

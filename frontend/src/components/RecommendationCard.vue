@@ -1,83 +1,81 @@
 <template>
-  <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-    <div class="flex items-start justify-between mb-4">
-      <div class="flex-1">
-        <div class="flex items-center space-x-3">
-          <h3 class="text-lg font-semibold text-gray-900">{{ recommendation.symbol }}</h3>
-          <span 
-            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-            :class="getRecommendationBadgeColor(recommendation.recommendation_type)"
-          >
-            {{ recommendation.recommendation_type }}
-          </span>
+  <div class="group relative bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-lg hover:shadow-slate-900/5 hover:border-slate-300/50">
+    <div>
+      <!-- Card Header -->
+      <div class="flex justify-between items-start mb-6">
+        <div class="flex-1">
+          <div class="flex items-center space-x-3 mb-2">
+            <h3 class="text-xl font-bold text-slate-900">{{ recommendation.symbol }}</h3>
+            <span 
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+              :class="getRecommendationBadgeColor(recommendation.recommendation_type)"
+            >
+              {{ recommendation.recommendation_type }}
+            </span>
+          </div>
+          <p class="text-sm text-slate-600 line-clamp-1">{{ recommendation.name }}</p>
         </div>
-        <p class="text-sm text-gray-600 mt-1">{{ recommendation.name }}</p>
-        <p v-if="recommendation.sector" class="text-xs text-gray-500 mt-1">{{ recommendation.sector }}</p>
+      </div>
+
+      <!-- Score Section -->
+      <div class="bg-gradient-to-r from-slate-50/70 to-blue-50/70 rounded-xl p-4 mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-sm font-medium text-slate-700">Recommendation Score</span>
+          <div class="text-right">
+            <span class="text-2xl font-bold" :class="getScoreTextColor(recommendation.score)">
+              {{ recommendation.score }}
+            </span>
+            <span class="text-sm text-slate-500">/100</span>
+          </div>
+        </div>
+        <div class="w-full bg-slate-200 rounded-full h-2">
+          <div 
+            class="h-2 rounded-full transition-all duration-500 ease-out" 
+            :class="getScoreBarColor(recommendation.score)" 
+            :style="{ width: `${recommendation.score}%` }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="mb-6">
+        <p class="text-sm text-slate-600 leading-relaxed line-clamp-3">{{ recommendation.reason }}</p>
       </div>
       
-      <div class="text-right">
-        <div class="text-2xl font-bold text-gray-900">{{ recommendation.score }}</div>
-        <div class="text-xs text-gray-500">/ 100</div>
+      <!-- Price Data -->
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="text-center p-4 bg-gradient-to-b from-slate-50/50 to-white/50 rounded-xl border border-slate-100">
+          <p class="text-xs text-slate-500 mb-2">Current Price</p>
+          <p class="text-lg font-bold text-slate-900">${{ recommendation.current_price }}</p>
+        </div>
+        <div class="text-center p-4 bg-gradient-to-b from-slate-50/50 to-white/50 rounded-xl border border-slate-100">
+          <p class="text-xs text-slate-500 mb-2">Target Price</p>
+          <p class="text-lg font-bold" :class="upside && upside.value > 0 ? 'text-emerald-600' : 'text-red-500'">
+            ${{ recommendation.target_price }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Upside Potential -->
+      <div v-if="upside" class="p-4 rounded-xl mb-6" :class="upside.bgColor">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium" :class="upside.textColor">Upside Potential</span>
+          <span class="text-lg font-bold" :class="upside.textColor">{{ upside.formattedValue }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="mb-4">
-      <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
-        <span>Score</span>
-        <span>{{ recommendation.score }}/100</span>
-      </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div 
-          class="h-2 rounded-full transition-all duration-300"
-          :class="getScoreBarColor(recommendation.score)"
-          :style="{ width: `${recommendation.score}%` }"
-        ></div>
-      </div>
-    </div>
-
-    <div v-if="recommendation.current_price || recommendation.target_price" class="grid grid-cols-2 gap-4 mb-4">
-      <div v-if="recommendation.current_price" class="text-center p-3 bg-gray-50 rounded-lg">
-        <div class="text-xs text-gray-500">Current Price</div>
-        <div class="text-lg font-semibold text-gray-900">${{ recommendation.current_price }}</div>
-      </div>
-      <div v-if="recommendation.target_price" class="text-center p-3 bg-blue-50 rounded-lg">
-        <div class="text-xs text-gray-500">Target Price</div>
-        <div class="text-lg font-semibold text-blue-900">${{ recommendation.target_price }}</div>
-      </div>
-    </div>
-
-    <div v-if="upside" class="mb-4 p-3 rounded-lg" :class="upside.color">
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium">Upside Potential</span>
-        <span class="text-sm font-bold">{{ upside.value }}</span>
-      </div>
-    </div>
-
-    <div v-if="recommendation.pe_ratio || recommendation.market_cap" class="grid grid-cols-2 gap-4 mb-4 text-sm">
-      <div v-if="recommendation.pe_ratio" class="flex justify-between">
-        <span class="text-gray-500">P/E Ratio:</span>
-        <span class="font-medium">{{ recommendation.pe_ratio }}</span>
-      </div>
-      <div v-if="recommendation.market_cap" class="flex justify-between">
-        <span class="text-gray-500">Market Cap:</span>
-        <span class="font-medium">{{ formatMarketCap(Number(recommendation.market_cap)) }}</span>
-      </div>
-    </div>
-
-    <div class="border-t border-gray-200 pt-4">
-      <p class="text-sm text-gray-700 leading-relaxed">{{ recommendation.reason }}</p>
-    </div>
-
-    <div class="mt-4 flex space-x-2">
+    <!-- Card Footer Actions -->
+    <div class="flex space-x-3 pt-4 border-t border-slate-100">
       <button 
         @click="$emit('view-details')"
-        class="flex-1 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+        class="flex-1 inline-flex justify-center items-center px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-all duration-200 active:scale-95"
       >
         View Details
       </button>
       <button 
         @click="$emit('add-to-watchlist')"
-        class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 transition-colors"
+        class="flex-1 inline-flex justify-center items-center px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-all duration-200 active:scale-95"
       >
         Add to Watchlist
       </button>
@@ -113,16 +111,13 @@ const upside = computed(() => {
   
   const upsidePercent = ((target - current) / current) * 100
   
-  if (upsidePercent > 0) {
-    return {
-      value: `+${upsidePercent.toFixed(1)}%`,
-      color: 'bg-green-50 text-green-700 border border-green-200'
-    }
-  } else {
-    return {
-      value: `${upsidePercent.toFixed(1)}%`,
-      color: 'bg-red-50 text-red-700 border border-red-200'
-    }
+  const isPositive = upsidePercent > 0;
+  
+  return {
+    value: upsidePercent,
+    formattedValue: `${isPositive ? '+' : ''}${upsidePercent.toFixed(1)}%`,
+    bgColor: isPositive ? 'bg-green-50' : 'bg-red-50',
+    textColor: isPositive ? 'text-green-700' : 'text-red-700'
   }
 })
 
@@ -143,13 +138,10 @@ const getScoreBarColor = (score: number) => {
   return 'bg-red-500'
 }
 
-const formatMarketCap = (marketCap: number) => {
-  if (marketCap >= 1e9) {
-    return `$${(marketCap / 1e9).toFixed(1)}B`
-  } else if (marketCap >= 1e6) {
-    return `$${(marketCap / 1e6).toFixed(1)}M`
-  } else {
-    return `$${marketCap.toLocaleString()}`
-  }
+const getScoreTextColor = (score: number) => {
+  if (score >= 80) return 'text-green-600'
+  if (score >= 60) return 'text-yellow-600'
+  if (score >= 40) return 'text-orange-600'
+  return 'text-red-600'
 }
 </script>
