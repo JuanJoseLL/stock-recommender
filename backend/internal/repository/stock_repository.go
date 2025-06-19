@@ -23,7 +23,9 @@ func NewStockRepository(db *database.DB) StockRepository {
 func (r *stockRepository) GetAll(ctx context.Context) ([]domain.Stock, error) {
 	query := `
 		SELECT id, ticker, target_from, target_to, company, action, 
-		       brokerage, rating_from, rating_to, time, created_at, updated_at
+		       brokerage, rating_from, rating_to, time, created_at, updated_at,
+		       current_price, volume, market_cap, pe_ratio, week_high_52, week_low_52,
+		       eps, book_value, dividend_yield, sector, industry, enriched_at
 		FROM stocks
 		ORDER BY time DESC
 	`
@@ -50,6 +52,18 @@ func (r *stockRepository) GetAll(ctx context.Context) ([]domain.Stock, error) {
 			&stock.Time,
 			&stock.CreatedAt,
 			&stock.UpdatedAt,
+			&stock.CurrentPrice,
+			&stock.Volume,
+			&stock.MarketCap,
+			&stock.PERatio,
+			&stock.WeekHigh52,
+			&stock.WeekLow52,
+			&stock.EPS,
+			&stock.BookValue,
+			&stock.DividendYield,
+			&stock.Sector,
+			&stock.Industry,
+			&stock.EnrichedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan stock row: %w", err)
@@ -67,7 +81,9 @@ func (r *stockRepository) GetAll(ctx context.Context) ([]domain.Stock, error) {
 func (r *stockRepository) GetByTicker(ctx context.Context, ticker string) (*domain.Stock, error) {
 	query := `
 		SELECT id, ticker, target_from, target_to, company, action, 
-		       brokerage, rating_from, rating_to, time, created_at, updated_at
+		       brokerage, rating_from, rating_to, time, created_at, updated_at,
+		       current_price, volume, market_cap, pe_ratio, week_high_52, week_low_52,
+		       eps, book_value, dividend_yield, sector, industry, enriched_at
 		FROM stocks
 		WHERE ticker = $1
 		ORDER BY time DESC
@@ -88,6 +104,18 @@ func (r *stockRepository) GetByTicker(ctx context.Context, ticker string) (*doma
 		&stock.Time,
 		&stock.CreatedAt,
 		&stock.UpdatedAt,
+		&stock.CurrentPrice,
+		&stock.Volume,
+		&stock.MarketCap,
+		&stock.PERatio,
+		&stock.WeekHigh52,
+		&stock.WeekLow52,
+		&stock.EPS,
+		&stock.BookValue,
+		&stock.DividendYield,
+		&stock.Sector,
+		&stock.Industry,
+		&stock.EnrichedAt,
 	)
 
 	if err != nil {
@@ -224,6 +252,18 @@ func (r *stockRepository) GetTopRecommendations(ctx context.Context, limit int) 
 			&stock.Time,
 			&stock.CreatedAt,
 			&stock.UpdatedAt,
+			&stock.CurrentPrice,
+			&stock.Volume,
+			&stock.MarketCap,
+			&stock.PERatio,
+			&stock.WeekHigh52,
+			&stock.WeekLow52,
+			&stock.EPS,
+			&stock.BookValue,
+			&stock.DividendYield,
+			&stock.Sector,
+			&stock.Industry,
+			&stock.EnrichedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan recommendation row: %w", err)
@@ -294,4 +334,49 @@ func (r *stockRepository) CheckDuplicates(ctx context.Context) (int, error) {
 	}
 	
 	return count, nil
+}
+
+// Update updates an existing stock record
+func (r *stockRepository) Update(ctx context.Context, stock *domain.Stock) error {
+	query := `
+		UPDATE stocks SET
+			ticker = $2, target_from = $3, target_to = $4, company = $5, action = $6,
+			brokerage = $7, rating_from = $8, rating_to = $9, time = $10, updated_at = NOW(),
+			current_price = $11, volume = $12, market_cap = $13, pe_ratio = $14,
+			week_high_52 = $15, week_low_52 = $16, eps = $17, book_value = $18,
+			dividend_yield = $19, sector = $20, industry = $21, enriched_at = $22
+		WHERE id = $1
+		RETURNING updated_at
+	`
+	
+	err := r.db.QueryRowContext(ctx, query,
+		stock.ID,
+		stock.Ticker,
+		stock.TargetFrom,
+		stock.TargetTo,
+		stock.Company,
+		stock.Action,
+		stock.Brokerage,
+		stock.RatingFrom,
+		stock.RatingTo,
+		stock.Time,
+		stock.CurrentPrice,
+		stock.Volume,
+		stock.MarketCap,
+		stock.PERatio,
+		stock.WeekHigh52,
+		stock.WeekLow52,
+		stock.EPS,
+		stock.BookValue,
+		stock.DividendYield,
+		stock.Sector,
+		stock.Industry,
+		stock.EnrichedAt,
+	).Scan(&stock.UpdatedAt)
+
+	if err != nil {
+		return fmt.Errorf("failed to update stock: %w", err)
+	}
+
+	return nil
 }

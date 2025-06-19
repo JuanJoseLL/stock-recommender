@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig
-	Database DatabaseConfig
-	API      APIConfig
+	Server      ServerConfig
+	Database    DatabaseConfig
+	API         APIConfig
+	AlphaVantage AlphaVantageConfig
 }
 
 type ServerConfig struct {
@@ -30,6 +31,10 @@ type APIConfig struct {
 	Key string
 }
 
+type AlphaVantageConfig struct {
+	APIKey string
+}
+
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -46,6 +51,9 @@ func Load() *Config {
 		API: APIConfig{
 			URL: getEnv("API_URL", "https://localhost:8080"),
 			Key: getEnv("API_KEY", ""),
+		},
+		AlphaVantage: AlphaVantageConfig{
+			APIKey: getEnv("ALPHA_VANTAGE_API", ""),
 		},
 	}
 }
