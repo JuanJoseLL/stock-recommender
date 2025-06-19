@@ -1,13 +1,29 @@
-# terraform-project/variables.tf
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
 
 variable "project_name" {
-  description = "El nombre del proyecto, usado para nombrar recursos."
+  description = "Name of the project"
   type        = string
   default     = "stock-recommender"
 }
 
-variable "aws_region" {
-  description = "La región de AWS para desplegar los recursos."
+variable "instance_type" {
+  description = "EC2 instance type"
   type        = string
-  default     = "us-east-1"
+  default     = "t2.micro"
 }
+
+variable "admin_username" {
+  description = "Admin username for EC2 instance"
+  type        = string
+  default     = "admin"
+}
+
+variable "admin_password" {
+  description = "Admin password for EC2 instance"
+  type        = string
+  sensitive   = true
+} 
