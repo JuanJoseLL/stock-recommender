@@ -80,7 +80,18 @@ describe('useApi composables', () => {
 
     it('handles successful API call', async () => {
       const mockResponse = {
-        stocks: [{ id: 1, ticker: 'AAPL', company: 'Apple Inc.' }],
+        stocks: [{ 
+          id: 1, 
+          ticker: 'AAPL', 
+          company: 'Apple Inc.',
+          target_from: '150.00',
+          target_to: '200.00',
+          action: 'BUY',
+          brokerage: 'Goldman Sachs',
+          rating_from: 'BUY',
+          rating_to: 'BUY',
+          time: '2024-01-01T00:00:00Z'
+        }],
         count: 1
       }
       vi.mocked(apiService.getStocks).mockResolvedValue(mockResponse)
@@ -174,7 +185,13 @@ describe('useApi composables', () => {
     it('handles successful API call with default limit', async () => {
       const mockResponse = {
         message: 'Enrichment completed',
-        stats: { total_stocks: 5, newly_enriched: 3, already_enriched: 1, failed: 1 }
+        stats: { 
+          total_stocks: 5, 
+          newly_enriched: 3, 
+          already_enriched: 1, 
+          failed: 1,
+          rate_limit_reached: false
+        }
       }
       vi.mocked(apiService.enrichStocks).mockResolvedValue(mockResponse)
 
@@ -194,7 +211,13 @@ describe('useApi composables', () => {
     it('handles successful API call with custom limit', async () => {
       const mockResponse = {
         message: 'Enrichment completed',
-        stats: { total_stocks: 10, newly_enriched: 7, already_enriched: 2, failed: 1 }
+        stats: { 
+          total_stocks: 10, 
+          newly_enriched: 7, 
+          already_enriched: 2, 
+          failed: 1,
+          rate_limit_reached: false
+        }
       }
       vi.mocked(apiService.enrichStocks).mockResolvedValue(mockResponse)
 
@@ -232,9 +255,21 @@ describe('useApi composables', () => {
     it('handles successful API call with default limit', async () => {
       const mockResponse = {
         recommendations: [
-          { symbol: 'AAPL', name: 'Apple Inc.', score: 85, recommendation_type: 'BUY' }
+          { 
+            symbol: 'AAPL', 
+            name: 'Apple Inc.', 
+            score: 85, 
+            reason: 'Strong fundamentals and growth potential',
+            recommendation_type: 'BUY' as const
+          }
         ],
-        summary: { total_analyzed: 1, buy_recommendations: 1, hold_recommendations: 0 }
+        summary: { 
+          total_analyzed: 1, 
+          buy_recommendations: 1, 
+          hold_recommendations: 0,
+          generated_at: '2024-01-01T00:00:00Z',
+          data_source: 'AlphaVantage'
+        }
       }
       vi.mocked(apiService.getRecommendations).mockResolvedValue(mockResponse)
 
@@ -254,10 +289,28 @@ describe('useApi composables', () => {
     it('handles successful API call with custom limit', async () => {
       const mockResponse = {
         recommendations: [
-          { symbol: 'AAPL', name: 'Apple Inc.', score: 85, recommendation_type: 'BUY' },
-          { symbol: 'GOOGL', name: 'Google LLC', score: 70, recommendation_type: 'HOLD' }
+          { 
+            symbol: 'AAPL', 
+            name: 'Apple Inc.', 
+            score: 85, 
+            reason: 'Strong fundamentals and growth potential',
+            recommendation_type: 'BUY' as const 
+          },
+          { 
+            symbol: 'GOOGL', 
+            name: 'Google LLC', 
+            score: 70, 
+            reason: 'Stable market position but limited growth',
+            recommendation_type: 'HOLD' as const 
+          }
         ],
-        summary: { total_analyzed: 2, buy_recommendations: 1, hold_recommendations: 1 }
+        summary: { 
+          total_analyzed: 2, 
+          buy_recommendations: 1, 
+          hold_recommendations: 1,
+          generated_at: '2024-01-01T00:00:00Z',
+          data_source: 'AlphaVantage'
+        }
       }
       vi.mocked(apiService.getRecommendations).mockResolvedValue(mockResponse)
 
@@ -299,11 +352,29 @@ describe('useApi composables', () => {
       })
 
       // Mock successful responses
-      vi.mocked(apiService.checkHealth).mockResolvedValue({ status: 'healthy' })
+      vi.mocked(apiService.checkHealth).mockResolvedValue({ status: 'healthy', service: 'stock-recommender' })
       vi.mocked(apiService.getStocks).mockResolvedValue({ stocks: [], count: 0 })
       vi.mocked(apiService.syncStocks).mockResolvedValue({ message: 'success' })
-      vi.mocked(apiService.enrichStocks).mockResolvedValue({ message: 'success', stats: {} })
-      vi.mocked(apiService.getRecommendations).mockResolvedValue({ recommendations: [], summary: {} })
+      vi.mocked(apiService.enrichStocks).mockResolvedValue({ 
+        message: 'success', 
+        stats: {
+          total_stocks: 0,
+          already_enriched: 0,
+          newly_enriched: 0,
+          failed: 0,
+          rate_limit_reached: false
+        }
+      })
+      vi.mocked(apiService.getRecommendations).mockResolvedValue({ 
+        recommendations: [], 
+        summary: {
+          total_analyzed: 0,
+          buy_recommendations: 0,
+          hold_recommendations: 0,
+          generated_at: '2024-01-01T00:00:00Z',
+          data_source: 'AlphaVantage'
+        }
+      })
 
       // Execute all
       await Promise.all(composables.map(({ execute }) => execute()))

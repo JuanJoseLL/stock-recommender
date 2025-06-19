@@ -139,7 +139,18 @@ describe('stocks store', () => {
   it('fetchStocks sets loading state and handles success', async () => {
     const store = useStocksStore()
     const mockResponse = {
-      stocks: [{ id: 1, ticker: 'AAPL', company: 'Apple Inc.' }],
+      stocks: [{ 
+        id: 1, 
+        ticker: 'AAPL', 
+        company: 'Apple Inc.',
+        target_from: '150.00',
+        target_to: '200.00',
+        action: 'BUY',
+        brokerage: 'Goldman Sachs',
+        rating_from: 'BUY',
+        rating_to: 'BUY',
+        time: '2024-01-01T00:00:00Z'
+      }],
       count: 1
     }
 
@@ -181,7 +192,18 @@ describe('stocks store', () => {
   it('syncStocks calls API and refreshes stocks', async () => {
     const store = useStocksStore()
     const mockStocksResponse = {
-      stocks: [{ id: 1, ticker: 'AAPL', company: 'Apple Inc.' }],
+      stocks: [{ 
+        id: 1, 
+        ticker: 'AAPL', 
+        company: 'Apple Inc.',
+        target_from: '150.00',
+        target_to: '200.00',
+        action: 'BUY',
+        brokerage: 'Goldman Sachs',
+        rating_from: 'BUY',
+        rating_to: 'BUY',
+        time: '2024-01-01T00:00:00Z'
+      }],
       count: 1
     }
 
@@ -203,10 +225,27 @@ describe('stocks store', () => {
     const store = useStocksStore()
     const mockResponse = {
       message: 'Success',
-      stats: { total_stocks: 5, newly_enriched: 3, already_enriched: 1, failed: 1 }
+      stats: { 
+        total_stocks: 5, 
+        newly_enriched: 3, 
+        already_enriched: 1, 
+        failed: 1,
+        rate_limit_reached: false
+      }
     }
     const mockStocksResponse = {
-      stocks: [{ id: 1, ticker: 'AAPL', company: 'Apple Inc.' }],
+      stocks: [{ 
+        id: 1, 
+        ticker: 'AAPL', 
+        company: 'Apple Inc.',
+        target_from: '150.00',
+        target_to: '200.00',
+        action: 'BUY',
+        brokerage: 'Goldman Sachs',
+        rating_from: 'BUY',
+        rating_to: 'BUY',
+        time: '2024-01-01T00:00:00Z'
+      }],
       count: 1
     }
 
@@ -228,9 +267,21 @@ describe('stocks store', () => {
     const store = useStocksStore()
     const mockResponse = {
       recommendations: [
-        { symbol: 'AAPL', name: 'Apple Inc.', score: 85, recommendation_type: 'BUY' }
+        { 
+          symbol: 'AAPL', 
+          name: 'Apple Inc.', 
+          score: 85, 
+          reason: 'Strong fundamentals and growth potential',
+          recommendation_type: 'BUY' as const
+        }
       ],
-      summary: { total_analyzed: 1, buy_recommendations: 1, hold_recommendations: 0 }
+      summary: { 
+        total_analyzed: 1, 
+        buy_recommendations: 1, 
+        hold_recommendations: 0,
+        generated_at: '2024-01-01T00:00:00Z',
+        data_source: 'AlphaVantage'
+      }
     }
 
     vi.mocked(apiService.getRecommendations).mockResolvedValue(mockResponse)

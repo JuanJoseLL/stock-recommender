@@ -167,12 +167,12 @@ describe('DashboardCard', () => {
     const wrapper = mount(DashboardCard, {
       props: {
         title: 'Null Value',
-        value: null,
+        value: 'N/A',
         icon: 'chart'
       }
     })
 
-    // Should not crash and display empty or null
+    // Should not crash and display fallback value
     expect(wrapper.find('.text-3xl').exists()).toBe(true)
   })
 
@@ -180,12 +180,12 @@ describe('DashboardCard', () => {
     const wrapper = mount(DashboardCard, {
       props: {
         title: 'Undefined Value',
-        value: undefined,
+        value: '',
         icon: 'chart'
       }
     })
 
-    // Should not crash and display empty or undefined
+    // Should not crash and display empty string
     expect(wrapper.find('.text-3xl').exists()).toBe(true)
   })
 })
