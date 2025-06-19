@@ -59,6 +59,7 @@ func TestNewRecommendationService(t *testing.T) {
 
 	if service == nil {
 		t.Error("Expected service to be created, got nil")
+		return
 	}
 	if service.stockRepo == nil {
 		t.Error("Expected repository to be set")

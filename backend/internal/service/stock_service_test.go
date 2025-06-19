@@ -85,6 +85,7 @@ func TestNewStockService(t *testing.T) {
 
 	if service == nil {
 		t.Error("Expected service to be created, got nil")
+		return
 	}
 	if service.repo != repo {
 		t.Error("Expected repository to be set correctly")
