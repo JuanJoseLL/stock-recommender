@@ -82,28 +82,20 @@
       </div>
 
       <!-- Controls -->
-      <div class="flex flex-col space-y-3">
-        <label class="flex items-center group cursor-pointer">
-          <div class="relative">
-            <input 
-              type="checkbox" 
-              v-model="localFilters.enriched_only" 
-              @change="onFilterChange" 
-              class="sr-only peer"
-            >
-            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-          </div>
-          <span class="ml-3 text-sm font-medium text-slate-700">Enriched Only</span>
-        </label>
+      <div class="flex items-center justify-between">
         <button 
           @click="clearFilters" 
-          class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all duration-200"
+          class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-xl transition-all duration-200"
         >
           <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
           Clear
         </button>
+        <div class="text-right">
+          <div class="text-sm font-semibold text-slate-900">{{ filteredStocksCount }}</div>
+          <div class="text-xs text-slate-500">results</div>
+        </div>
       </div>
     </div>
   </div>
@@ -154,6 +146,40 @@ const availableBrokerages = computed(() => {
     if (stock.brokerage) brokerages.add(stock.brokerage)
   })
   return Array.from(brokerages).sort()
+})
+
+const filteredStocksCount = computed(() => {
+  let filtered = props.stocks
+
+  if (localFilters.value.search) {
+    const searchLower = localFilters.value.search.toLowerCase()
+    filtered = filtered.filter(stock => 
+      stock.ticker.toLowerCase().includes(searchLower) ||
+      stock.company.toLowerCase().includes(searchLower)
+    )
+  }
+
+  if (localFilters.value.sector) {
+    filtered = filtered.filter(stock => 
+      stock.sector && stock.sector === localFilters.value.sector
+    )
+  }
+
+  if (localFilters.value.action) {
+    filtered = filtered.filter(stock => 
+      stock.action && stock.action === localFilters.value.action
+    )
+  }
+
+  if (localFilters.value.brokerage) {
+    filtered = filtered.filter(stock => 
+      stock.brokerage && stock.brokerage === localFilters.value.brokerage
+    )
+  }
+
+
+
+  return filtered.length
 })
 
 const clearFilters = () => {

@@ -8,7 +8,6 @@ import { RouterLink, RouterView } from 'vue-router'
     <aside class="w-64 bg-white/80 backdrop-blur-sm border-r border-slate-200/50 flex-shrink-0">
       <div class="p-6 border-b border-slate-200/50">
         <h1 class="text-xl font-bold text-slate-900">Stock Recommender</h1>
-        <span class="text-sm text-slate-600">AI-Powered Analysis</span>
       </div>
       <nav class="mt-6 px-3">
         <RouterLink
