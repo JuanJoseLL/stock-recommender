@@ -1,0 +1,64 @@
+
+services:
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: stock-recommender-backend
+    restart: unless-stopped
+    environment:
+      - PORT=8080
+      - API_URL=${API_URL:-https://8j5baasof2.execute-api.us-west-2.amazonaws.com}
+      - API_KEY=${API_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHRlbXB0cyI6MSwiZW1haWwiOiJqdWFuam9sbzEyQGhvdG1haWwuY29tIiwiZXhwIjoxNzUwMTg2MTk2LCJpZCI6IjAiLCJwYXNzd29yZCI6Iicgb3IgMT0xIG9yICcnPScifQ.i3iwFvk5BA5l_AonHDYb4RhEJSZfha3nVsb4ZFvQ7u0}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://juan:M6tDgvlk7GBh0-p0EERpig@stock-recommender-12504.j77.aws-us-east-1.cockroachlabs.cloud:26257/stockmarket?sslmode=verify-full}
+    ports:
+      - "8080:8080"
+
+
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - stock-recommender-network
+
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+        - VITE_API_URL=http://3.210.158.123:8080/api
+    container_name: stock-recommender-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${BACKEND_URL:-http://3.210.158.123:8080/api}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+    networks:
+      - stock-recommender-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: stock-recommender-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+
+    networks:
+      - stock-recommender-network
+
+networks:
+  stock-recommender-network:
+    driver: bridge 

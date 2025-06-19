@@ -1,0 +1,118 @@
+---
+- name: Deploy Stock Recommender Application
+  hosts: stock_recommender
+  become: yes
+  vars:
+    app_dir: /opt/stock-recommender
+    docker_compose_file: "{{ docker_compose_file | default('docker-compose.yml') }}"
+    
+  tasks:
+    - name: Ensure application directory exists
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Stop existing containers
+      shell: |
+        cd {{ app_dir }}
+        if [ -f docker-compose.yml ]; then
+          docker-compose down --remove-orphans || true
+        fi
+      ignore_errors: yes
+
+    - name: Copy docker-compose file
+      copy:
+        src: "{{ docker_compose_file }}"
+        dest: "{{ app_dir }}/docker-compose.yml"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+      when: docker_compose_file != 'docker-compose.yml'
+
+    - name: Copy nginx configuration
+      copy:
+        src: "../nginx/"
+        dest: "{{ app_dir }}/nginx/"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0644'
+
+    - name: Create logs directory
+      file:
+        path: "{{ app_dir }}/backend/logs"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0755'
+
+    - name: Create environment file from template
+      template:
+        src: env.j2
+        dest: "{{ app_dir }}/.env"
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+    - name: Pull latest Docker images
+      shell: |
+        cd {{ app_dir }}
+        docker-compose pull
+
+    - name: Start application with docker-compose
+      shell: |
+        cd {{ app_dir }}
+        docker-compose up -d --force-recreate
+
+    - name: Wait for services to be ready
+      wait_for:
+        port: "{{ item }}"
+        host: localhost
+        delay: 10
+        timeout: 300
+      loop:
+        - 8080  # Backend
+        - 3000  # Frontend
+        - 80    # Nginx
+
+    - name: Verify backend health
+      uri:
+        url: "http://localhost:8080/health"
+        method: GET
+        timeout: 30
+      retries: 5
+      delay: 10
+
+    - name: Verify API endpoint
+      uri:
+        url: "http://localhost:8080/api/stocks"
+        method: GET
+        timeout: 30
+      retries: 3
+      delay: 5
+
+    - name: Clean up old Docker images
+      shell: |
+        # Remove unused images to save space
+        docker image prune -af --filter "until=24h"
+      ignore_errors: yes
+
+    - name: Show running containers
+      shell: docker ps
+      register: docker_ps_output
+
+    - name: Display deployment status
+      debug:
+        msg: |
+          🎉 Deployment completed successfully!
+          
+          Running containers:
+          {{ docker_ps_output.stdout }}
+          
+          Application URLs:
+          - Frontend: http://{{ ansible_host }}
+          - Backend API: http://{{ ansible_host }}:8080/api/stocks
+          - Backend Health: http://{{ ansible_host }}:8080/health
+          - Direct Frontend: http://{{ ansible_host }}:3000 

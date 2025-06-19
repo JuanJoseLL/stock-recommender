@@ -1,54 +1,69 @@
-# terraform-project/outputs.tf
+output "vpc_id" {
+  description = "ID of the VPC"
+  value       = data.aws_vpc.default.id
+}
 
-output "instrucciones_despliegue" {
-  value = <<-EOT
-  Infraestructura creada. Siguientes pasos manuales:
+output "public_subnet_ids" {
+  description = "IDs of the public subnets"
+  value       = data.aws_subnets.default.ids
+}
 
-  1. BACKEND: Construye, etiqueta y pushea tu imagen de Docker a ECR:
-     aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${module.backend.ecr_repository_url}
-     docker build -t app-backend ./backend
-     docker tag app-backend:latest ${module.backend.ecr_repository_url}:latest
-     docker push ${module.backend.ecr_repository_url}:latest
+output "instance_id" {
+  description = "EC2 instance ID"
+  value       = module.ec2.instance_id
+}
 
-     (Después del push, App Runner se desplegará automáticamente)
+output "instance_public_ip" {
+  description = "Public IP address of the EC2 instance, to be used for SSH and in the Ansible inventory."
+  value       = module.ec2.public_ip
+}
 
-  2. FRONTEND: Configura la URL del backend y construye:
-     cd frontend
-     export VITE_API_URL="${module.backend.app_runner_service_url}/api"
-     npm run build
-     aws s3 sync ./dist s3://${module.frontend.s3_bucket_name} --delete
-     aws cloudfront create-invalidation --distribution-id ${module.frontend.cloudfront_distribution_id} --paths "/*"
-  EOT
+output "private_ip" {
+  description = "Private IP address of the EC2 instance"
+  value       = module.ec2.private_ip
+}
+
+output "security_group_id" {
+  description = "ID of the security group"
+  value       = module.security.web_security_group_id
+}
+
+output "admin_username" {
+  description = "Admin username for SSH access"
+  value       = var.admin_username
+}
+
+output "ssh_connection" {
+  description = "SSH connection command"
+  value       = "ssh ${var.admin_username}@${module.ec2.public_ip}"
+}
+
+output "application_url" {
+  description = "URL to access the application"
+  value       = "http://${module.ec2.public_ip}"
 }
 
 output "frontend_url" {
-  description = "URL del Frontend (CloudFront)"
-  value       = "https://${module.frontend.cloudfront_domain_name}"
+  description = "URL to access the frontend directly"
+  value       = "http://${module.ec2.public_ip}:3000"
 }
 
 output "backend_url" {
-  description = "URL del Backend (App Runner)"
-  value       = module.backend.app_runner_service_url
+  description = "URL to access the backend API directly"
+  value       = "http://${module.ec2.public_ip}:8080"
 }
 
-output "aws_region" {
-  description = "Región de AWS"
-  value       = var.aws_region
+output "public_ip" {
+  description = "Public IP of the EC2 instance"
+  value       = module.ec2.public_ip
 }
 
-# Outputs para el script de deploy
-output "backend" {
-  description = "Backend outputs"
-  value = {
-    ecr_repository_url = module.backend.ecr_repository_url
-  }
+output "ssh_private_key_filename" {
+  description = "Filename for the private key to SSH into the EC2 instance."
+  value       = local_file.private_key.filename
 }
 
-output "frontend" {
-  description = "Frontend outputs"
-  value = {
-    s3_bucket_name = module.frontend.s3_bucket_name
-    cloudfront_distribution_id = module.frontend.cloudfront_distribution_id
-    cloudfront_domain_name = module.frontend.cloudfront_domain_name
-  }
-}
+output "ssh_connection_command" {
+  description = "Example command to SSH into the EC2 instance."
+  value       = "ssh -i ${local_file.private_key.filename} ubuntu@${module.ec2.public_ip}"
+} 

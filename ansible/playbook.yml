@@ -1,0 +1,141 @@
+---
+- name: Deploy Stock Recommender Application
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    app_directory: "/opt/stock-recommender"
+    
+  tasks:
+    - name: Wait for system to be ready
+      wait_for_connection:
+        timeout: 300
+
+    - name: Install required packages
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: present
+        update_cache: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-{{ ansible_system }}-{{ ansible_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Start and enable Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Verify Docker is installed
+      command: docker --version
+      register: docker_check
+
+    - name: Verify Docker Compose is installed
+      command: docker-compose --version
+      register: docker_compose_check
+
+    - name: Create application directory
+      file:
+        path: "{{ app_directory }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Copy application files
+      synchronize:
+        src: "../"
+        dest: "{{ app_directory }}/"
+        delete: no
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=node_modules"
+          - "--exclude=vendor"
+          - "--exclude=.env"
+          - "--exclude=terraform"
+          - "--exclude=ansible"
+      become_user: "{{ ansible_user }}"
+
+    - name: Create .env file from template
+      template:
+        src: "templates/env.j2"
+        dest: "{{ app_directory }}/.env"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0600'
+
+    - name: Set proper ownership
+      file:
+        path: "{{ app_directory }}"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        recurse: yes
+
+    - name: Stop existing containers
+      command: docker-compose down
+      args:
+        chdir: "{{ app_directory }}"
+      become_user: "{{ ansible_user }}"
+      ignore_errors: yes
+
+    - name: Start application containers
+      command: docker-compose up -d --build
+      args:
+        chdir: "{{ app_directory }}"
+      become_user: "{{ ansible_user }}"
+      register: docker_result
+
+    - name: Wait for services to start
+      wait_for:
+        port: "{{ item }}"
+        host: localhost
+        delay: 30
+        timeout: 300
+      loop:
+        - 80    # Nginx
+        - 3000  # Frontend
+        - 8080  # Backend
+      ignore_errors: yes
+
+    - name: Display deployment information
+      debug:
+        msg: 
+          - "=== DEPLOYMENT COMPLETE ==="
+          - "Application URL: http://{{ ansible_host }}"
+          - "Frontend URL: http://{{ ansible_host }}:3000"
+          - "Backend URL: http://{{ ansible_host }}:8080"
+          - "SSH: ssh {{ ansible_user }}@{{ ansible_host }}" 

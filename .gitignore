@@ -20,6 +20,18 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.pem
+
+# Ansible
+ansible/inventory.yml
+ansible/inventory.yaml
+ansible/hosts
+ansible/group_vars/*/vault.yml
+ansible/host_vars/*/vault.yml
+ansible/templates/env.j2
+ansible/templates/*.env
+ansible/.vault_pass
+ansible/*.retry
 
 # Build outputs
 bin/
@@ -58,3 +70,11 @@ Thumbs.db
 # Terraform crash logs
 **/crash.log
 **/crash.*.log
+*.pem
+
+# Terraform state and sensitive files
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+terraform.tfplan
