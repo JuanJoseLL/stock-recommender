@@ -115,6 +115,7 @@ jobs:
                 - API_URL=\${API_URL:-https://8j5baasof2.execute-api.us-west-2.amazonaws.com}
                 - API_KEY=\${API_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdHRlbXB0cyI6MSwiZW1haWwiOiJqdWFuam9sbzEyQGhvdG1haWwuY29tIiwiZXhwIjoxNzUwMTg2MTk2LCJpZCI6IjAiLCJwYXNzd29yZCI6Iicgb3IgMT0xIG9yICcnPScifQ.i3iwFvk5BA5l_AonHDYb4RhEJSZfha3nVsb4ZFvQ7u0}
                 - DATABASE_URL=\${DATABASE_URL:-postgresql://juan:M6tDgvlk7GBh0-p0EERpig@stock-recommender-12504.j77.aws-us-east-1.cockroachlabs.cloud:26257/stockmarket?sslmode=verify-full}
+                - ALPHA_VANTAGE_API_KEY=\${ALPHA_VANTAGE_API_KEY:-M114RVB1UFCDQGVO}
               ports:
                 - "8080:8080"
               volumes:

@@ -9,17 +9,17 @@
         <button
           @click="handleRefresh"
           :disabled="loading.stocks"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          class="inline-flex items-center px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
         >
-          <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <svg class="w-4 h-4 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
           {{ loading.stocks ? 'Loading...' : 'Refresh' }}
         </button>
         <button
           @click="handleSync"
           :disabled="loading.sync"
-          class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          class="inline-flex items-center px-4 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-sm text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
         >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
           {{ loading.sync ? 'Syncing...' : 'Sync Data' }}
         </button>
       </div>
@@ -55,7 +55,7 @@
       <h3 class="mt-2 text-sm font-semibold text-gray-900">No stocks found</h3>
       <p class="mt-1 text-sm text-gray-500">No stocks found matching your filters.</p>
       <div class="mt-6">
-        <button @click="clearFilters" type="button" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+        <button @click="clearFilters" type="button" class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all duration-200">
           Clear filters
         </button>
       </div>
@@ -73,31 +73,31 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="filteredStocks.length > pagination.limit" class="flex justify-between items-center pt-6 border-t border-gray-200">
-      <div class="text-sm text-gray-700">
+    <div v-if="filteredStocks.length > pagination.limit" class="flex justify-between items-center pt-6 border-t border-slate-200">
+      <div class="text-sm text-slate-600">
         Showing
-        <span class="font-medium">{{ (pagination.page - 1) * pagination.limit + 1 }}</span>
+        <span class="font-medium text-slate-900">{{ (pagination.page - 1) * pagination.limit + 1 }}</span>
         to
-        <span class="font-medium">{{ Math.min(pagination.page * pagination.limit, filteredStocks.length) }}</span>
+        <span class="font-medium text-slate-900">{{ Math.min(pagination.page * pagination.limit, filteredStocks.length) }}</span>
         of
-        <span class="font-medium">{{ filteredStocks.length }}</span>
+        <span class="font-medium text-slate-900">{{ filteredStocks.length }}</span>
         results
       </div>
       <div class="flex items-center space-x-2">
         <button
           @click="previousPage"
           :disabled="pagination.page === 1"
-          class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           Previous
         </button>
-        <span class="text-sm text-gray-700">
+        <span class="text-sm text-slate-700 font-medium">
           Page {{ pagination.page }} of {{ totalPages }}
         </span>
         <button
           @click="nextPage"
           :disabled="pagination.page >= totalPages"
-          class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          class="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           Next
         </button>

@@ -9,48 +9,113 @@
         <button
           @click="handleRefresh"
           :disabled="loading.recommendations"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          class="inline-flex items-center px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
         >
-          <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+          <svg class="w-4 h-4 mr-2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
           {{ loading.recommendations ? 'Loading...' : 'Refresh' }}
         </button>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-xl border border-gray-200 p-4">
-      <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-        <div class="w-full md:w-auto">
-          <label class="sr-only" for="rec-type">Recommendation Type</label>
-          <select id="rec-type" v-model="filters.recommendation_type" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="">All Types</option>
-            <option value="BUY">BUY</option>
-            <option value="HOLD">HOLD</option>
-            <option value="WATCH">WATCH</option>
-            <option value="SELL">SELL</option>
-          </select>
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 shadow-sm">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+        <!-- Search Input -->
+        <div class="lg:col-span-2">
+          <label for="search" class="block text-sm font-medium text-slate-700 mb-2">Search</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              id="search"
+              v-model="filters.search"
+              type="text"
+              placeholder="Search symbol or company..."
+              class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+            />
+          </div>
         </div>
-        <div class="w-full md:w-auto">
-          <label class="sr-only" for="sector">Sector</label>
-          <select id="sector" v-model="filters.sector" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="">All Sectors</option>
-            <option v-for="sector in availableSectors" :key="sector" :value="sector">{{ sector }}</option>
-          </select>
+
+        <!-- Sector Filter -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Sector</label>
+          <div class="relative">
+            <select 
+              v-model="filters.sector" 
+              class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer"
+            >
+              <option value="" class="text-slate-500">All Sectors</option>
+              <option v-for="sector in availableSectors" :key="sector" :value="sector" class="text-slate-700">{{ sector }}</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
         </div>
-        <div class="w-full md:w-auto">
-          <label class="sr-only" for="sort-by">Sort By</label>
-          <select id="sort-by" v-model="sortBy" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            <option value="score">Score (High to Low)</option>
-            <option value="score-asc">Score (Low to High)</option>
-            <option value="upside">Upside Potential</option>
-            <option value="symbol">Symbol (A-Z)</option>
-          </select>
+
+        <!-- Recommendation Type Filter -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Type</label>
+          <div class="relative">
+            <select 
+              v-model="filters.recommendation_type" 
+              class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer"
+            >
+              <option value="" class="text-slate-500">All Types</option>
+              <option value="BUY" class="text-slate-700">BUY</option>
+              <option value="HOLD" class="text-slate-700">HOLD</option>
+              <option value="WATCH" class="text-slate-700">WATCH</option>
+              <option value="SELL" class="text-slate-700">SELL</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
         </div>
-        <button @click="clearFilters" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
-          Clear Filters
-        </button>
-        <div class="text-sm text-gray-500 md:ml-auto">
-          Showing {{ filteredRecommendations.length }} recommendations
+
+        <!-- Sort By Filter -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Sort By</label>
+          <div class="relative">
+            <select 
+              v-model="sortBy" 
+              class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 cursor-pointer"
+            >
+              <option value="score" class="text-slate-700">Score (High to Low)</option>
+              <option value="score-asc" class="text-slate-700">Score (Low to High)</option>
+              <option value="upside" class="text-slate-700">Upside Potential</option>
+              <option value="symbol" class="text-slate-700">Symbol (A-Z)</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-between">
+          <button 
+            @click="clearFilters" 
+            class="inline-flex items-center px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-xl transition-all duration-200"
+          >
+            <svg class="h-4 w-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Clear
+          </button>
+          <div class="text-right">
+            <div class="text-sm font-semibold text-slate-900">{{ filteredRecommendations.length }}</div>
+            <div class="text-xs text-slate-500">results</div>
+          </div>
         </div>
       </div>
     </div>
@@ -86,7 +151,7 @@
       <h3 class="mt-2 text-sm font-semibold text-gray-900">No recommendations found</h3>
       <p class="mt-1 text-sm text-gray-500">Try adjusting your filters or refreshing the data.</p>
       <div class="mt-6">
-        <button @click="clearFilters" type="button" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+        <button @click="clearFilters" type="button" class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all duration-200">
           Clear filters
         </button>
       </div>
@@ -120,7 +185,8 @@ const sortBy = ref('score')
 
 const filters = ref({
   recommendation_type: '',
-  sector: ''
+  sector: '',
+  search: ''
 })
 
 const summary = computed(() => {
@@ -148,17 +214,30 @@ const availableSectors = computed(() => {
 const filteredRecommendations = computed(() => {
   let filtered = recommendations.value
 
+  // Filter by search (symbol or name)
+  if (filters.value.search) {
+    const searchLower = filters.value.search.toLowerCase()
+    filtered = filtered.filter(rec => 
+      rec.symbol.toLowerCase().includes(searchLower) ||
+      rec.name.toLowerCase().includes(searchLower)
+    )
+  }
+
+  // Filter by recommendation type
   if (filters.value.recommendation_type) {
     filtered = filtered.filter(rec => 
       rec.recommendation_type === filters.value.recommendation_type
     )
   }
 
+  // Filter by sector
   if (filters.value.sector) {
     filtered = filtered.filter(rec => 
       rec.sector && rec.sector === filters.value.sector
     )
   }
+
+
 
   const sorted = [...filtered].sort((a, b) => {
     switch (sortBy.value) {
@@ -203,7 +282,8 @@ const handleLimitChange = () => {
 const clearFilters = () => {
   filters.value = {
     recommendation_type: '',
-    sector: ''
+    sector: '',
+    search: ''
   }
 }
 
