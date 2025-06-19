@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import Dashboard from '../components/Dashboard.vue'
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
+  <main class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Dashboard />
+    </div>
   </main>
 </template>

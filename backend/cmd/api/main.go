@@ -34,11 +34,17 @@ func main() {
 	// Initialize repository
 	stockRepo := repository.NewStockRepository(db)
 
+	// Initialize clients
 	apiClient := client.NewHTTPClient(cfg.API.URL, cfg.API.Key)
+	alphaVantageClient := client.NewAlphaVantageClient(cfg.AlphaVantage.APIKey)
 
+	// Initialize services
 	stockService := service.NewStockService(stockRepo, apiClient)
+	recommendationService := service.NewRecommendationService(stockRepo, alphaVantageClient)
+	enrichmentService := service.NewEnrichmentService(stockRepo, alphaVantageClient)
 
-	stockHandler := handler.NewStockHandler(stockService)
+	// Initialize handler
+	stockHandler := handler.NewStockHandler(stockService, recommendationService, enrichmentService)
 
 	router := gin.Default()
 
