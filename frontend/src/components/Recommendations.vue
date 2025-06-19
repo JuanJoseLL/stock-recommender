@@ -1,147 +1,99 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8">
+        <!-- Header -->
     <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-bold text-gray-900">Smart Recommendations</h2>
+       <div>
+        <h1 class="text-3xl font-bold text-gray-800">Recommendations</h1>
+      </div>
       <div class="flex space-x-3">
-        <select 
-          v-model="selectedLimit"
-          @change="handleLimitChange"
-          class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="10">Top 10</option>
-          <option value="20">Top 20</option>
-          <option value="50">Top 50</option>
-        </select>
         <button
           @click="handleRefresh"
           :disabled="loading.recommendations"
-          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
         >
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>
+          <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
           {{ loading.recommendations ? 'Loading...' : 'Refresh' }}
         </button>
       </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-      <h3 class="text-lg font-semibold text-gray-900 mb-4">Filters & Sorting</h3>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Recommendation Type</label>
-          <select 
-            v-model="filters.recommendation_type" 
-            multiple
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+    <!-- Filters -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+        <div class="w-full md:w-auto">
+          <label class="sr-only" for="rec-type">Recommendation Type</label>
+          <select id="rec-type" v-model="filters.recommendation_type" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">All Types</option>
             <option value="BUY">BUY</option>
             <option value="HOLD">HOLD</option>
             <option value="WATCH">WATCH</option>
             <option value="SELL">SELL</option>
           </select>
         </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Sector</label>
-          <select 
-            v-model="filters.sector" 
-            multiple
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option v-for="sector in availableSectors" :key="sector" :value="sector">
-              {{ sector }}
-            </option>
+        <div class="w-full md:w-auto">
+          <label class="sr-only" for="sector">Sector</label>
+          <select id="sector" v-model="filters.sector" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="">All Sectors</option>
+            <option v-for="sector in availableSectors" :key="sector" :value="sector">{{ sector }}</option>
           </select>
         </div>
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-          <select 
-            v-model="sortBy"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+        <div class="w-full md:w-auto">
+          <label class="sr-only" for="sort-by">Sort By</label>
+          <select id="sort-by" v-model="sortBy" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
             <option value="score">Score (High to Low)</option>
             <option value="score-asc">Score (Low to High)</option>
             <option value="upside">Upside Potential</option>
             <option value="symbol">Symbol (A-Z)</option>
           </select>
         </div>
-      </div>
-      
-      <div class="flex justify-between items-center mt-4">
-        <button
-          @click="clearFilters"
-          class="text-sm text-gray-600 hover:text-gray-800"
-        >
-          Clear all filters
+        <button @click="clearFilters" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+          Clear Filters
         </button>
-        
-        <span class="text-sm text-gray-500">
+        <div class="text-sm text-gray-500 md:ml-auto">
           Showing {{ filteredRecommendations.length }} recommendations
-        </span>
+        </div>
       </div>
     </div>
 
-    <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
+    <!-- Summary -->
+    <div v-if="summary" class="bg-blue-50 border-l-4 border-blue-400 p-4">
       <div class="flex">
-        <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-        </svg>
-        <div class="text-sm text-red-700">{{ error }}</div>
-      </div>
-    </div>
-
-    <div v-if="summary" class="bg-blue-50 border border-blue-200 rounded-md p-4">
-      <h4 class="text-sm font-medium text-blue-900 mb-2">Analysis Summary</h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-        <div>
-          <span class="text-blue-600 font-medium">Total Analyzed:</span>
-          <span class="ml-1 text-blue-900">{{ summary.total_analyzed }}</span>
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
         </div>
-        <div>
-          <span class="text-blue-600 font-medium">BUY Signals:</span>
-          <span class="ml-1 text-blue-900">{{ summary.buy_recommendations }}</span>
-        </div>
-        <div>
-          <span class="text-blue-600 font-medium">HOLD Signals:</span>
-          <span class="ml-1 text-blue-900">{{ summary.hold_recommendations }}</span>
-        </div>
-        <div>
-          <span class="text-blue-600 font-medium">Data Source:</span>
-          <span class="ml-1 text-blue-900">{{ summary.data_source }}</span>
+        <div class="ml-3 flex-1 md:flex md:justify-between">
+          <p class="text-sm text-blue-700">
+            Analyzed <span class="font-medium">{{ summary.total_analyzed }}</span> stocks. Found <span class="font-medium">{{ summary.buy_recommendations }}</span> BUY and <span class="font-medium">{{ summary.hold_recommendations }}</span> HOLD signals.
+          </p>
+          <p class="mt-3 text-sm md:mt-0 md:ml-6">
+            <span class="text-blue-700">Source: <span class="font-medium">{{ summary.data_source }}</span></span>
+          </p>
         </div>
       </div>
     </div>
 
-    <div v-if="loading.recommendations && recommendations.length === 0" class="flex items-center justify-center py-12">
-      <div class="text-center">
-        <svg class="animate-spin w-8 h-8 mb-2 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-        </svg>
-        <p class="text-gray-500">Loading recommendations...</p>
+    <!-- Loading State -->
+    <div v-if="loading.recommendations && recommendations.length === 0" class="text-center py-12">
+      <div class="flex items-center justify-center">
+        <svg class="animate-spin w-8 h-8 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+        <p class="text-lg text-gray-600">Loading recommendations...</p>
       </div>
     </div>
-
-    <div v-else-if="filteredRecommendations.length === 0 && !loading.recommendations" class="text-center py-12">
-      <div class="text-gray-500">
-        <svg class="w-16 h-16 mb-4 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-        </svg>
-        <p class="text-lg font-medium">No recommendations found</p>
-        <p class="text-sm">Try adjusting your filters or refreshing the data</p>
-        <button 
-          @click="clearFilters"
-          class="mt-3 text-blue-600 hover:text-blue-800 text-sm underline"
-        >
+    
+    <!-- Empty State -->
+    <div v-else-if="filteredRecommendations.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+      <h3 class="mt-2 text-sm font-semibold text-gray-900">No recommendations found</h3>
+      <p class="mt-1 text-sm text-gray-500">Try adjusting your filters or refreshing the data.</p>
+      <div class="mt-6">
+        <button @click="clearFilters" type="button" class="text-sm font-medium text-blue-600 hover:text-blue-500">
           Clear filters
         </button>
       </div>
     </div>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+    <!-- Recommendations Grid -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       <RecommendationCard
         v-for="recommendation in filteredRecommendations"
         :key="recommendation.symbol"
@@ -167,8 +119,8 @@ const selectedLimit = ref(10)
 const sortBy = ref('score')
 
 const filters = ref({
-  recommendation_type: [] as string[],
-  sector: [] as string[]
+  recommendation_type: '',
+  sector: ''
 })
 
 const summary = computed(() => {
@@ -196,15 +148,15 @@ const availableSectors = computed(() => {
 const filteredRecommendations = computed(() => {
   let filtered = recommendations.value
 
-  if (filters.value.recommendation_type.length > 0) {
+  if (filters.value.recommendation_type) {
     filtered = filtered.filter(rec => 
-      filters.value.recommendation_type.includes(rec.recommendation_type)
+      rec.recommendation_type === filters.value.recommendation_type
     )
   }
 
-  if (filters.value.sector.length > 0) {
+  if (filters.value.sector) {
     filtered = filtered.filter(rec => 
-      rec.sector && filters.value.sector.includes(rec.sector)
+      rec.sector && rec.sector === filters.value.sector
     )
   }
 
@@ -250,17 +202,19 @@ const handleLimitChange = () => {
 
 const clearFilters = () => {
   filters.value = {
-    recommendation_type: [],
-    sector: []
+    recommendation_type: '',
+    sector: ''
   }
 }
 
-const handleViewDetails = (recommendation: Recommendation) => {
-  console.log('View details for:', recommendation.symbol)
+const handleViewDetails = (rec: Recommendation) => {
+  // Logic to show details, e.g., in a modal
+  alert(`Viewing details for ${rec.symbol}`)
 }
 
-const handleAddToWatchlist = (recommendation: Recommendation) => {
-  console.log('Add to watchlist:', recommendation.symbol)
+const handleAddToWatchlist = (rec: Recommendation) => {
+  // Logic to add to a watchlist
+  alert(`${rec.symbol} added to watchlist`)
 }
 
 watch(() => filters.value, () => {

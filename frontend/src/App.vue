@@ -3,54 +3,105 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center">
-            <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">Stock Recommender</h1>
-            </div>
-            <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
-              <RouterLink
-                to="/"
-                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
-                active-class="border-blue-500 text-blue-600"
-              >
-                Dashboard
-              </RouterLink>
-              <RouterLink
-                to="/stocks"
-                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
-                active-class="border-blue-500 text-blue-600"
-              >
-                Stocks
-              </RouterLink>
-              <RouterLink
-                to="/recommendations"
-                class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors"
-                active-class="border-blue-500 text-blue-600"
-              >
-                Recommendations
-              </RouterLink>
-            </div>
-          </div>
-          <div class="flex items-center">
-            <div class="text-sm text-gray-500">
-              <span class="hidden sm:inline">AI-Powered Stock Analysis</span>
-            </div>
-          </div>
+  <div class="flex h-screen bg-gradient-to-br from-slate-50 to-slate-100 font-sans">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white/80 backdrop-blur-sm border-r border-slate-200/50 flex-shrink-0">
+      <div class="p-6 border-b border-slate-200/50">
+        <h1 class="text-xl font-bold text-slate-900">Stock Recommender</h1>
+        <span class="text-sm text-slate-600">AI-Powered Analysis</span>
+      </div>
+      <nav class="mt-6 px-3">
+        <RouterLink
+          to="/"
+          class="flex items-center py-3 px-4 mb-2 text-slate-700 hover:bg-slate-100/70 hover:text-slate-900 rounded-xl transition-all duration-200 group"
+          active-class="bg-slate-900 text-white shadow-sm"
+        >
+          <svg class="w-5 h-5 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10v11h6v-7h6v7h6V10L12 3z"></path>
+          </svg>
+          <span class="font-medium">Dashboard</span>
+        </RouterLink>
+        <RouterLink
+          to="/stocks"
+          class="flex items-center py-3 px-4 mb-2 text-slate-700 hover:bg-slate-100/70 hover:text-slate-900 rounded-xl transition-all duration-200 group"
+          active-class="bg-slate-900 text-white shadow-sm"
+        >
+          <svg class="w-5 h-5 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+          <span class="font-medium">Stocks</span>
+        </RouterLink>
+        <RouterLink
+          to="/recommendations"
+          class="flex items-center py-3 px-4 mb-2 text-slate-700 hover:bg-slate-100/70 hover:text-slate-900 rounded-xl transition-all duration-200 group"
+          active-class="bg-slate-900 text-white shadow-sm"
+        >
+          <svg class="w-5 h-5 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+          </svg>
+          <span class="font-medium">Recommendations</span>
+        </RouterLink>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <div class="flex-1 overflow-x-hidden overflow-y-auto">
+        <div class="container mx-auto px-6 py-8">
+          <RouterView />
         </div>
       </div>
-    </nav>
-    
-    <RouterView />
+    </main>
   </div>
 </template>
 
-<style scoped>
-.router-link-active {
-  border-color: #3b82f6;
-  color: #2563eb;
+<style>
+/* Modern focus styles */
+:focus {
+  outline: none;
+}
+
+/* Custom scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184 / 0.5);
+}
+
+/* Active link styling */
+.router-link-exact-active {
+  background-color: rgb(15 23 42) !important;
+  color: #ffffff !important;
+}
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 </style>
