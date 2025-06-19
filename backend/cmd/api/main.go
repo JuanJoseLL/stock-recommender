@@ -3,12 +3,15 @@ package main
 import (
 	"log"
 
+	"time"
+
 	"github.com/JuanJoseLL/stock-recommender/internal/client"
 	"github.com/JuanJoseLL/stock-recommender/internal/handler"
 	"github.com/JuanJoseLL/stock-recommender/internal/repository"
 	"github.com/JuanJoseLL/stock-recommender/internal/service"
 	"github.com/JuanJoseLL/stock-recommender/pkg/config"
 	"github.com/JuanJoseLL/stock-recommender/pkg/database"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -38,6 +41,16 @@ func main() {
 	stockHandler := handler.NewStockHandler(stockService)
 
 	router := gin.Default()
+
+	// Configure CORS
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // En producción, especifica el dominio de CloudFront
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	stockHandler.RegisterRoutes(router)
 

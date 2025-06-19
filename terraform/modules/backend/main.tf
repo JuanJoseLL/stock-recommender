@@ -86,4 +86,11 @@ resource "aws_apprunner_service" "backend_service" {
   tags = {
     Project = var.project_name
   }
+
+  # Ignore changes to image_identifier to avoid conflicts when deploying via CI/CD
+  lifecycle {
+    ignore_changes = [
+      source_configuration[0].image_repository[0].image_identifier
+    ]
+  }
 }
