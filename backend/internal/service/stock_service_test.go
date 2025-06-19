@@ -80,9 +80,9 @@ func (m *mockExternalAPIClient) FetchAllStocks(ctx context.Context) ([]domain.St
 func TestNewStockService(t *testing.T) {
 	repo := &mockStockRepository{}
 	client := &mockExternalAPIClient{}
-	
+
 	service := NewStockService(repo, client)
-	
+
 	if service == nil {
 		t.Error("Expected service to be created, got nil")
 	}
@@ -99,13 +99,13 @@ func TestStockService_GetAllStocks(t *testing.T) {
 		{ID: 1, Ticker: "AAPL", Company: "Apple Inc."},
 		{ID: 2, Ticker: "GOOGL", Company: "Google LLC"},
 	}
-	
+
 	repo := &mockStockRepository{stocks: testStocks}
 	client := &mockExternalAPIClient{}
 	service := NewStockService(repo, client)
-	
+
 	stocks, err := service.GetAllStocks(context.Background())
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -121,9 +121,9 @@ func TestStockService_GetAllStocks_Error(t *testing.T) {
 	repo := &mockStockRepository{err: errors.New("database error")}
 	client := &mockExternalAPIClient{}
 	service := NewStockService(repo, client)
-	
+
 	stocks, err := service.GetAllStocks(context.Background())
-	
+
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
@@ -135,23 +135,27 @@ func TestStockService_GetAllStocks_Error(t *testing.T) {
 func TestStockService_GetStockStats(t *testing.T) {
 	now := time.Now()
 	yesterday := now.Add(-24 * time.Hour)
-	
+
 	testStocks := []domain.Stock{
 		{ID: 1, Ticker: "AAPL", Company: "Apple Inc.", Brokerage: "Goldman Sachs", Time: now},
 		{ID: 2, Ticker: "GOOGL", Company: "Google LLC", Brokerage: "Morgan Stanley", Time: yesterday},
 		{ID: 3, Ticker: "AAPL", Company: "Apple Inc.", Brokerage: "Goldman Sachs", Time: now.Add(-12 * time.Hour)},
 	}
-	
+
 	repo := &mockStockRepository{stocks: testStocks}
 	client := &mockExternalAPIClient{}
 	service := NewStockService(repo, client)
-	
+
 	stats, err := service.GetStockStats(context.Background())
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
-	
+	if stats == nil {
+		t.Error("Expected stats, got nil")
+		return
+	}
+
 	if stats["total_stocks"] != 3 {
 		t.Errorf("Expected total_stocks to be 3, got %v", stats["total_stocks"])
 	}
@@ -164,7 +168,7 @@ func TestStockService_GetStockStats(t *testing.T) {
 	if stats["unique_brokerages"] != 2 {
 		t.Errorf("Expected unique_brokerages to be 2, got %v", stats["unique_brokerages"])
 	}
-	
+
 	latestEntry, ok := stats["latest_entry"].(time.Time)
 	if !ok {
 		t.Error("Expected latest_entry to be time.Time")
@@ -172,7 +176,7 @@ func TestStockService_GetStockStats(t *testing.T) {
 	if !latestEntry.Equal(now) {
 		t.Errorf("Expected latest_entry to be %v, got %v", now, latestEntry)
 	}
-	
+
 	oldestEntry, ok := stats["oldest_entry"].(time.Time)
 	if !ok {
 		t.Error("Expected oldest_entry to be time.Time")
@@ -186,9 +190,9 @@ func TestStockService_GetStockStats_EmptyStocks(t *testing.T) {
 	repo := &mockStockRepository{stocks: []domain.Stock{}}
 	client := &mockExternalAPIClient{}
 	service := NewStockService(repo, client)
-	
+
 	stats, err := service.GetStockStats(context.Background())
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -204,13 +208,13 @@ func TestStockService_SyncStocks(t *testing.T) {
 	testStocks := []domain.Stock{
 		{ID: 1, Ticker: "AAPL", Company: "Apple Inc."},
 	}
-	
+
 	repo := &mockStockRepository{}
 	client := &mockExternalAPIClient{stocks: testStocks}
 	service := NewStockService(repo, client)
-	
+
 	err := service.SyncStocks(context.Background())
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
@@ -220,9 +224,9 @@ func TestStockService_SyncStocks_FetchError(t *testing.T) {
 	repo := &mockStockRepository{}
 	client := &mockExternalAPIClient{err: errors.New("API error")}
 	service := NewStockService(repo, client)
-	
+
 	err := service.SyncStocks(context.Background())
-	
+
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
@@ -235,13 +239,13 @@ func TestStockService_SyncStocks_SaveError(t *testing.T) {
 	testStocks := []domain.Stock{
 		{ID: 1, Ticker: "AAPL", Company: "Apple Inc."},
 	}
-	
+
 	repo := &mockStockRepository{err: errors.New("database error")}
 	client := &mockExternalAPIClient{stocks: testStocks}
 	service := NewStockService(repo, client)
-	
+
 	err := service.SyncStocks(context.Background())
-	
+
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
@@ -252,7 +256,7 @@ func TestStockService_SyncStocks_SaveError(t *testing.T) {
 
 func TestStockService_isValidStock(t *testing.T) {
 	service := &StockService{}
-	
+
 	// Valid stock
 	validStock := domain.Stock{
 		Ticker:  "AAPL",
@@ -262,7 +266,7 @@ func TestStockService_isValidStock(t *testing.T) {
 	if !service.isValidStock(validStock) {
 		t.Error("Expected valid stock to pass validation")
 	}
-	
+
 	// Invalid stock - empty ticker
 	invalidStock1 := domain.Stock{
 		Company: "Apple Inc.",
@@ -271,7 +275,7 @@ func TestStockService_isValidStock(t *testing.T) {
 	if service.isValidStock(invalidStock1) {
 		t.Error("Expected stock with empty ticker to fail validation")
 	}
-	
+
 	// Invalid stock - empty company
 	invalidStock2 := domain.Stock{
 		Ticker: "AAPL",
@@ -280,7 +284,7 @@ func TestStockService_isValidStock(t *testing.T) {
 	if service.isValidStock(invalidStock2) {
 		t.Error("Expected stock with empty company to fail validation")
 	}
-	
+
 	// Invalid stock - zero time
 	invalidStock3 := domain.Stock{
 		Ticker:  "AAPL",
@@ -293,17 +297,17 @@ func TestStockService_isValidStock(t *testing.T) {
 
 func TestStockService_validateStocks(t *testing.T) {
 	service := &StockService{}
-	
+
 	stocks := []domain.Stock{
-		{Ticker: "AAPL", Company: "Apple Inc.", Time: time.Now()},         // Valid
-		{Ticker: "", Company: "Google", Time: time.Now()},                 // Invalid
-		{Ticker: "MSFT", Company: "Microsoft", Time: time.Now()},          // Valid
-		{Ticker: "TSLA", Company: "", Time: time.Now()},                   // Invalid
-		{Ticker: "AMZN", Company: "Amazon", Time: time.Time{}},            // Invalid
+		{Ticker: "AAPL", Company: "Apple Inc.", Time: time.Now()}, // Valid
+		{Ticker: "", Company: "Google", Time: time.Now()},         // Invalid
+		{Ticker: "MSFT", Company: "Microsoft", Time: time.Now()},  // Valid
+		{Ticker: "TSLA", Company: "", Time: time.Now()},           // Invalid
+		{Ticker: "AMZN", Company: "Amazon", Time: time.Time{}},    // Invalid
 	}
-	
+
 	validStocks := service.validateStocks(stocks)
-	
+
 	if len(validStocks) != 2 {
 		t.Errorf("Expected 2 valid stocks, got %d", len(validStocks))
 	}
@@ -317,14 +321,14 @@ func TestStockService_validateStocks(t *testing.T) {
 
 func TestStockService_countUniqueTickers(t *testing.T) {
 	service := &StockService{}
-	
+
 	stocks := []domain.Stock{
 		{Ticker: "AAPL"},
 		{Ticker: "GOOGL"},
 		{Ticker: "AAPL"}, // Duplicate
 		{Ticker: "MSFT"},
 	}
-	
+
 	count := service.countUniqueTickers(stocks)
 	if count != 3 {
 		t.Errorf("Expected 3 unique tickers, got %d", count)
@@ -333,14 +337,14 @@ func TestStockService_countUniqueTickers(t *testing.T) {
 
 func TestStockService_countUniqueCompanies(t *testing.T) {
 	service := &StockService{}
-	
+
 	stocks := []domain.Stock{
 		{Company: "Apple Inc."},
 		{Company: "Google LLC"},
 		{Company: "Apple Inc."}, // Duplicate
 		{Company: "Microsoft"},
 	}
-	
+
 	count := service.countUniqueCompanies(stocks)
 	if count != 3 {
 		t.Errorf("Expected 3 unique companies, got %d", count)
@@ -349,14 +353,14 @@ func TestStockService_countUniqueCompanies(t *testing.T) {
 
 func TestStockService_countUniqueBrokerages(t *testing.T) {
 	service := &StockService{}
-	
+
 	stocks := []domain.Stock{
 		{Brokerage: "Goldman Sachs"},
 		{Brokerage: "Morgan Stanley"},
 		{Brokerage: "Goldman Sachs"}, // Duplicate
 		{Brokerage: "JP Morgan"},
 	}
-	
+
 	count := service.countUniqueBrokerages(stocks)
 	if count != 3 {
 		t.Errorf("Expected 3 unique brokerages, got %d", count)
@@ -365,17 +369,17 @@ func TestStockService_countUniqueBrokerages(t *testing.T) {
 
 func TestStockService_getLatestEntry(t *testing.T) {
 	service := &StockService{}
-	
+
 	now := time.Now()
 	yesterday := now.Add(-24 * time.Hour)
 	tomorrow := now.Add(24 * time.Hour)
-	
+
 	stocks := []domain.Stock{
 		{Time: yesterday},
 		{Time: now},
 		{Time: tomorrow},
 	}
-	
+
 	latest := service.getLatestEntry(stocks)
 	if !latest.Equal(tomorrow) {
 		t.Errorf("Expected latest entry to be %v, got %v", tomorrow, latest)
@@ -384,17 +388,17 @@ func TestStockService_getLatestEntry(t *testing.T) {
 
 func TestStockService_getOldestEntry(t *testing.T) {
 	service := &StockService{}
-	
+
 	now := time.Now()
 	yesterday := now.Add(-24 * time.Hour)
 	dayBeforeYesterday := now.Add(-48 * time.Hour)
-	
+
 	stocks := []domain.Stock{
 		{Time: yesterday},
 		{Time: now},
 		{Time: dayBeforeYesterday},
 	}
-	
+
 	oldest := service.getOldestEntry(stocks)
 	if !oldest.Equal(dayBeforeYesterday) {
 		t.Errorf("Expected oldest entry to be %v, got %v", dayBeforeYesterday, oldest)

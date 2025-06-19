@@ -54,9 +54,9 @@ func (m *mockRecommendationRepository) CheckDuplicates(ctx context.Context) (int
 func TestNewRecommendationService(t *testing.T) {
 	repo := &mockRecommendationRepository{}
 	alphaClient := client.NewAlphaVantageClient("test-key")
-	
+
 	service := NewRecommendationService(repo, alphaClient)
-	
+
 	if service == nil {
 		t.Error("Expected service to be created, got nil")
 	}
@@ -72,14 +72,15 @@ func TestRecommendationService_GetStockRecommendations_EmptyStocks(t *testing.T)
 	repo := &mockRecommendationRepository{stocks: []domain.Stock{}}
 	alphaClient := client.NewAlphaVantageClient("test-key")
 	service := NewRecommendationService(repo, alphaClient)
-	
+
 	response, err := service.GetStockRecommendations(context.Background(), 10)
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
 	if response == nil {
 		t.Error("Expected response, got nil")
+		return
 	}
 	if len(response.Recommendations) != 0 {
 		t.Errorf("Expected 0 recommendations, got %d", len(response.Recommendations))
@@ -106,18 +107,19 @@ func TestRecommendationService_GetStockRecommendations_WithStocks(t *testing.T) 
 			Brokerage: "Morgan Stanley",
 		},
 	}
-	
+
 	repo := &mockRecommendationRepository{stocks: testStocks}
 	alphaClient := client.NewAlphaVantageClient("test-key")
 	service := NewRecommendationService(repo, alphaClient)
-	
+
 	response, err := service.GetStockRecommendations(context.Background(), 10)
-	
+
 	if err != nil {
 		t.Errorf("Expected no error, got %v", err)
 	}
 	if response == nil {
 		t.Error("Expected response, got nil")
+		return
 	}
 	if len(response.Recommendations) == 0 {
 		t.Error("Expected recommendations, got none")
@@ -131,9 +133,9 @@ func TestRecommendationService_GetStockRecommendations_DatabaseError(t *testing.
 	repo := &mockRecommendationRepository{err: errors.New("database error")}
 	alphaClient := client.NewAlphaVantageClient("test-key")
 	service := NewRecommendationService(repo, alphaClient)
-	
+
 	response, err := service.GetStockRecommendations(context.Background(), 10)
-	
+
 	if err == nil {
 		t.Error("Expected error, got nil")
 	}
@@ -144,37 +146,37 @@ func TestRecommendationService_GetStockRecommendations_DatabaseError(t *testing.
 
 func TestRecommendationService_calculateGainerScore(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	tests := []struct {
-		name              string
-		changePercentage  float64
+		name             string
+		changePercentage float64
 		volume           string
 		expectedMinScore float64
 		expectedMaxScore float64
 	}{
 		{
-			name:              "High percentage with high volume",
-			changePercentage:  5.0,
+			name:             "High percentage with high volume",
+			changePercentage: 5.0,
 			volume:           "2000000",
 			expectedMinScore: 70, // 5*10 + 20 volume bonus
 			expectedMaxScore: 100,
 		},
 		{
-			name:              "Low percentage with low volume",
-			changePercentage:  1.0,
+			name:             "Low percentage with low volume",
+			changePercentage: 1.0,
 			volume:           "50000",
 			expectedMinScore: 10, // 1*10
 			expectedMaxScore: 20,
 		},
 		{
-			name:              "Very high percentage capped at 100",
-			changePercentage:  15.0,
+			name:             "Very high percentage capped at 100",
+			changePercentage: 15.0,
 			volume:           "3000000",
 			expectedMinScore: 100, // Capped at 100
 			expectedMaxScore: 100,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			score := service.calculateGainerScore(tt.changePercentage, tt.volume)
@@ -187,7 +189,7 @@ func TestRecommendationService_calculateGainerScore(t *testing.T) {
 
 func TestRecommendationService_calculateAnalystScore(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	tests := []struct {
 		name          string
 		stock         domain.Stock
@@ -220,7 +222,7 @@ func TestRecommendationService_calculateAnalystScore(t *testing.T) {
 			expectedRange: [2]float64{-35, -25}, // -30
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			score := service.calculateAnalystScore(tt.stock)
@@ -233,7 +235,7 @@ func TestRecommendationService_calculateAnalystScore(t *testing.T) {
 
 func TestRecommendationService_parsePrice(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	tests := []struct {
 		priceStr string
 		expected float64
@@ -245,7 +247,7 @@ func TestRecommendationService_parsePrice(t *testing.T) {
 		{"100", 100},
 		{"$1,000.25", 1000.25},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.priceStr, func(t *testing.T) {
 			result := service.parsePrice(tt.priceStr)
@@ -258,7 +260,7 @@ func TestRecommendationService_parsePrice(t *testing.T) {
 
 func TestRecommendationService_getRecommendationType(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	tests := []struct {
 		score    float64
 		expected string
@@ -270,7 +272,7 @@ func TestRecommendationService_getRecommendationType(t *testing.T) {
 		{40, "WATCH"},
 		{0, "WATCH"},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			result := service.getRecommendationType(tt.score)
@@ -283,7 +285,7 @@ func TestRecommendationService_getRecommendationType(t *testing.T) {
 
 func TestRecommendationService_generateBasicReason(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	stock := domain.Stock{
 		Action:     "BUY",
 		Brokerage:  "Goldman Sachs",
@@ -292,9 +294,9 @@ func TestRecommendationService_generateBasicReason(t *testing.T) {
 		TargetFrom: "150.00",
 		TargetTo:   "200.00",
 	}
-	
+
 	reason := service.generateBasicReason(stock, 75.0)
-	
+
 	if !strings.Contains(reason, "buy recommendation") {
 		t.Error("Expected reason to contain 'buy recommendation'")
 	}
@@ -308,7 +310,7 @@ func TestRecommendationService_generateBasicReason(t *testing.T) {
 
 func TestRecommendationService_analyzeTopGainers(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	gainers := []client.AlphaVantageMarketMover{
 		{
 			Ticker:           "TSLA",
@@ -325,21 +327,21 @@ func TestRecommendationService_analyzeTopGainers(t *testing.T) {
 			Volume:           "1500000",
 		},
 	}
-	
+
 	recommendations := service.analyzeTopGainers(gainers)
-	
+
 	if len(recommendations) != 2 {
 		t.Errorf("Expected 2 recommendations, got %d", len(recommendations))
 	}
-	
+
 	if recommendations[0].Symbol != "TSLA" {
 		t.Errorf("Expected first recommendation to be TSLA, got %s", recommendations[0].Symbol)
 	}
-	
+
 	if recommendations[0].Score <= 0 {
 		t.Error("Expected positive score for top gainer")
 	}
-	
+
 	if recommendations[0].RecommendationType == "" {
 		t.Error("Expected recommendation type to be set")
 	}
@@ -347,7 +349,7 @@ func TestRecommendationService_analyzeTopGainers(t *testing.T) {
 
 func TestRecommendationService_analyzeStoredStocks(t *testing.T) {
 	service := &RecommendationService{}
-	
+
 	stocks := []domain.Stock{
 		{
 			Ticker:    "AAPL",
@@ -362,17 +364,17 @@ func TestRecommendationService_analyzeStoredStocks(t *testing.T) {
 			Brokerage: "Morgan Stanley",
 		},
 	}
-	
+
 	recommendations := service.analyzeStoredStocks(stocks)
-	
+
 	if len(recommendations) != 2 {
 		t.Errorf("Expected 2 recommendations, got %d", len(recommendations))
 	}
-	
+
 	if recommendations[0].Symbol != "AAPL" {
 		t.Errorf("Expected first recommendation to be AAPL, got %s", recommendations[0].Symbol)
 	}
-	
+
 	if recommendations[0].Name != "Apple Inc." {
 		t.Errorf("Expected first recommendation name to be Apple Inc., got %s", recommendations[0].Name)
 	}
