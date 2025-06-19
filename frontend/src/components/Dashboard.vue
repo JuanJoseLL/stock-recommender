@@ -9,6 +9,7 @@
       <div class="flex space-x-3">
         <button
           @click="refreshData"
+          
           :disabled="loading.stocks || loading.recommendations"
           class="inline-flex items-center px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-95"
         >
