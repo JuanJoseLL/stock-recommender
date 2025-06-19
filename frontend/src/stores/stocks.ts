@@ -29,7 +29,8 @@ export const useStocksStore = defineStore('stocks', () => {
 
   const stocksCount = computed(() => stocks.value.length)
 
-  const API_BASE_URL = '/api'
+  
+  const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
   const fetchStocks = async () => {
     loading.value = true
