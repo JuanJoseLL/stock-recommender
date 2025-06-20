@@ -36,6 +36,32 @@ On the EC2 instance, Nginx acts as a web server for the Vue.js frontend files an
 -   **Infrastructure**: AWS (EC2, VPC)
 -   **Deployment**: Terraform, Ansible, GitHub Actions
 
+## API Endpoints
+
+The backend exposes the following REST API endpoints:
+
+### Health Check
+- `GET /health`
+  - Returns service health status.
+
+### Stocks
+- `GET /api/stocks`
+  - Returns all stocks in the database.
+  - Response: `{ stocks: [...], count: <number> }`
+
+- `POST /api/stocks/sync`
+  - Triggers a sync to fetch and store the latest stock data from the challenge API.
+  - Response: `{ message: "Stocks synced successfully" }`
+
+- `POST /api/stocks/enrich?limit=5`
+  - Enriches stock data with additional market data from Alpha Vantage. Optional `limit` query param (default 5, max 20).
+  - Response: `{ message: "Stock enrichment completed", stats: {...} }`
+
+### Recommendations
+- `GET /api/recommendations?limit=10`
+  - Returns stock recommendations based on the scoring algorithm. Optional `limit` query param (default 10, max 50).
+  - Response: List of recommended stocks with scores and recommendation labels.
+
 ## Recommendation Algorithm Explained
 
 The recommendation algorithm in `recommendation_service.go` combines two data sources to generate a score for each stock.
